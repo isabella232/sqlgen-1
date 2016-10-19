@@ -145,6 +145,9 @@ Element:
 	for i < len(src) {
 		switch src[i] {
 		case '{':
+			if depth == len(dims) {
+				break Element
+			}
 			depth++
 			dims[depth-1] = 0
 			i++
@@ -186,11 +189,11 @@ Element:
 	}
 
 	for i < len(src) {
-		if bytes.HasPrefix(src[i:], del) {
+		if bytes.HasPrefix(src[i:], del) && depth > 0 {
 			dims[depth-1]++
 			i += len(del)
 			goto Element
-		} else if src[i] == '}' {
+		} else if src[i] == '}' && depth > 0 {
 			dims[depth-1]++
 			depth--
 			i++
