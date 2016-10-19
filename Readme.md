@@ -1,4 +1,4 @@
-# generate-composite-types
+# sqlgen
 
 This tool generates `sql.Scanner` and `sql.Valuer` interfaces for your own structs and type aliases. It is tested with Postgres and `lib/pq` library, others might work. The command is quite self explanatory, use the `--help` option to understand the parameters.
 

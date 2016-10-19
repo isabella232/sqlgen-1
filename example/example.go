@@ -2,7 +2,7 @@ package example
 
 import "time"
 
-//go:generate generate-composite-types -structs Job -sql -array
+//go:generate sqlgen -structs Job -sql -array
 type Job struct {
 	ID     string
 	Amount *Money
@@ -10,14 +10,14 @@ type Job struct {
 	Number Int64Alias
 }
 
-//go:generate generate-composite-types -structs Money -sql -array
+//go:generate sqlgen -structs Money -sql -array
 type Money struct {
 	Amount   int64
 	Currency string
 	Rounded  bool
 }
 
-//go:generate generate-composite-types -structs Complete -sql -array
+//go:generate sqlgen -structs Complete -sql -array
 type Complete struct {
 	CustomString  string
 	CustomInt16   int16
@@ -33,11 +33,11 @@ type Complete struct {
 	CustomBool    bool
 }
 
-//go:generate generate-composite-types -structs Times -sql -array
+//go:generate sqlgen -structs Times -sql -array
 type Times struct {
 	CustomTime  time.Time
 	CustomTimep *time.Time
 }
 
-//go:generate generate-composite-types -alias Int64Alias
+//go:generate sqlgen -alias Int64Alias
 type Int64Alias int64

@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/tools/imports"
 
-	"github.com/optiopay/generate-composite-types/parser"
+	"github.com/optiopay/sqlgen/parser"
 )
 
 var aliastypeTmpl, sqltypeTmpl, createSQLTmpl *template.Template
