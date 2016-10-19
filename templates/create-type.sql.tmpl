@@ -1,0 +1,4 @@
+create type {{.SQLTypeName}} as ( {{ range $index, $field := .Fields}}
+    {{ if $index }},{{end}} {{ .SQLName }}	{{ .SQLType}}
+    {{ end }}
+);

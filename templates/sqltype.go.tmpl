@@ -1,0 +1,130 @@
+// generated code
+package {{.PackageName}}
+
+import (
+	"database/sql"
+	"database/sql/driver"
+	"strconv"
+	"fmt"
+)
+
+{{ if .Array }}
+type {{.TypeName}}Array []{{.TypeName}}
+
+// Value implements the driver.Valuer interface.
+func (x {{.TypeName}}Array) Value() (driver.Value, error) {
+	if x == nil {
+		return nil, nil
+	}
+
+	if n := len(x); n > 0 {
+		// There will be at least two curly brackets, 2*N bytes of quotes,
+		// and N-1 bytes of delimiters.
+		b := make([]byte, 1, 1+3*n)
+		b[0] = '{'
+
+		val0, err := x[0].Value()
+		if err != nil {
+			return nil, err
+		}
+		val, ok := val0.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("unexpected value")
+		}
+		b = appendArrayQuotedBytes(b, val)
+		for i := 1; i < n; i++ {
+			vali, err := x[i].Value()
+			if err != nil {
+				return nil, err
+			}
+			val, ok := vali.([]byte)
+			if !ok {
+				return nil, fmt.Errorf("unexpected value")
+			}
+			b = append(b, ',')
+			b = appendArrayQuotedBytes(b, val)
+		}
+
+		return string(append(b, '}')), nil
+	}
+
+	return "{}", nil
+}
+
+// Scan implements the sql.Scanner interface.
+func (x *{{.TypeName}}Array) Scan(src interface{}) error {
+     	if src == nil {
+	       return nil
+	}
+	switch src := src.(type) {
+	case []byte:
+		return x.scanBytes(src)
+	case string:
+		return x.scanBytes([]byte(src))
+	}
+
+	return fmt.Errorf("pq: cannot convert %T to {{.TypeName}}Array\n%s", src, src)
+}
+
+func (x *{{.TypeName}}Array) scanBytes(src []byte) error {
+	elems, err := scanLinearArray(src, []byte{','}, "{{.TypeName}}")
+	if err != nil {
+		return err
+	}
+	if len(elems) == 0 {
+		*x = (*x)[:0]
+	} else {
+		b := make({{.TypeName}}Array, len(elems))
+		for i, v := range elems {
+			other := {{.TypeName}}{}
+			err := other.Scan(v)
+			if err != nil {
+				return err
+			}
+			if b[i] = other; v == nil {
+				return fmt.Errorf("pq: parsing array element index %d: cannot convert nil to string", i)
+			}
+		}
+		*x = b
+	}
+	return nil
+}
+{{ end}}
+
+func (x *{{.TypeName}}) Scan(src interface{}) error {
+     	if src == nil {
+	    return nil 
+	}
+	switch src := src.(type) {
+	case []byte:
+		return x.scanBytes(src)
+	case string:
+		return x.scanBytes([]byte(src))
+	}
+	return fmt.Errorf("cannot convert %T to {{.TypeName}}\n%s", src, src)
+}
+
+func (x *{{.TypeName}}) scanBytes(src []byte) error {
+	elems, err := splitBytes(src)
+	if err != nil {
+		return err
+	}
+	if len(elems) != {{.Fields|len}} {
+		return fmt.Errorf("expected %d elements got %d", {{.Fields|len}}, len(elems))
+	}
+	{{ range $index, $field := .Fields}}
+	{{ $index | $field.Scanner }}
+	{{ end }}
+	return nil
+}
+
+func (x {{.TypeName}}) Value() (driver.Value, error) {
+	b := make([]byte, 1)
+	b[0] = '('
+	{{ range $index, $field := .Fields }}
+	{{if $index}}b = append(b, ','){{end}}
+	{{$index | $field.Valuer}}
+	{{ end }}
+	b = append(b, ')')
+	return b, nil
+}

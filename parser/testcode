@@ -1,0 +1,33 @@
+package main
+
+import (
+	"time"
+)
+
+type City struct {
+	Name string
+}
+
+type Address struct {
+	PostalCode string
+	City       City
+}
+
+type Hobby struct {
+	AwesomeLevel int32
+	Name         string
+}
+
+type User struct {
+	ID      string    `gen:"id,partkey"`
+	Created time.Time `gen:"create,autonow"`
+	Updated time.Time `gen:"update,embed,autonow"`
+	Name    string    `gen:"create,update"`
+	Email   string    `gen:"create"`
+	Age     int64     `gen:"create,update"`
+	Hobbies []Hobby   `gen:"create,update"`
+	Colors  []string  `gen:"create,update"`
+	Address Address   `gen:"create,update"`
+
+	emptyTag string
+}

@@ -1,0 +1,31 @@
+// generated code
+package {{.PackageName}}
+
+import (
+	"database/sql/driver"
+	"strconv"
+	"fmt"
+)
+
+func (x *{{.AliasName}}) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return x.scanBytes(src)
+	case string:
+		return x.scanBytes([]byte(src))
+	{{.Scanner}}
+	}
+	return fmt.Errorf("cannot convert %T to {{.AliasName}}", src)
+}
+
+func (x *{{.AliasName}}) scanBytes(src []byte) error{
+     {{.ScanBytes}}
+     *x = {{.AliasName}}(i)
+     return nil
+}
+
+func (x {{.AliasName}}) Value() (driver.Value, error) {
+     b := make([]byte,0)
+     {{.Valuer}}
+     return b, nil
+}
