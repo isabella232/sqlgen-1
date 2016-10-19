@@ -17,7 +17,7 @@ import (
 	"github.com/optiopay/generate-composite-types/parser"
 )
 
-var aliastypeTmpl, sqltypeTmpl, commonTmpl, createSQLTmpl *template.Template
+var aliastypeTmpl, sqltypeTmpl, createSQLTmpl *template.Template
 
 func init() {
 	dataAlias, err := Asset("templates/aliastype.go.tmpl")
@@ -25,12 +25,6 @@ func init() {
 		log.Fatal("template was not embedded, run go-bindata")
 	}
 	aliastypeTmpl = template.Must(template.New("aliastype").Parse(string(dataAlias)))
-
-	dataCommon, err := Asset("templates/common.go.tmpl")
-	if err != nil {
-		log.Fatal("template was not embedded, run go-bindata")
-	}
-	commonTmpl = template.Must(template.New("commontype").Parse(string(dataCommon)))
 
 	dataSql, err := Asset("templates/sqltype.go.tmpl")
 	if err != nil {
@@ -57,9 +51,6 @@ func main() {
 	g, err := NewGenerator(*path)
 	fatalOnErr(err)
 
-	err = writeCommonCode(*path, g.pkg.Name)
-	fatalOnErr(err)
-
 	if *structs != "" {
 		for _, ty := range strings.Split(*structs, ",") {
 			err = g.GenerateStruct(*path, ty, *sql, *array)
@@ -79,14 +70,6 @@ func fatalOnErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func writeCommonCode(path, pkgName string) error {
-	var buf bytes.Buffer
-	commonTmpl.Execute(&buf, map[string]interface{}{
-		"PackageName": pkgName,
-	})
-	return cleanupAndWrite(&buf, filepath.Join(path, "common_sql.go"))
 }
 
 type Generator struct {
@@ -320,7 +303,7 @@ func generateAliasValuer(a *parser.TypeAlias) (string, error) {
 	case "float64":
 		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(x), 'f', -1, 64)`)
 	case "string":
-		resp = fmt.Sprintf(`b = appendArrayQuotedBytes(b, []byte(x))`)
+		resp = fmt.Sprintf(`b = encoding.AppendArrayQuotedBytes(b, []byte(x))`)
 	case "bool":
 		resp = fmt.Sprintf(`b = strconv.AppendBool(b, x)`)
 	default:
@@ -422,7 +405,7 @@ func (f *Field) Valuer(i int) string {
 	case "float64":
 		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(x.%s), 'f', -1, 64)`, f.Name)
 	case "string":
-		resp = fmt.Sprintf(`b = appendArrayQuotedBytes(b, []byte(x.%s))`, f.Name)
+		resp = fmt.Sprintf(`b = encoding.AppendArrayQuotedBytes(b, []byte(x.%s))`, f.Name)
 	case "bool":
 		resp = fmt.Sprintf(`b = strconv.AppendBool(b, x.%s)`, f.Name)
 	case "time.Time":
@@ -438,7 +421,7 @@ func (f *Field) Valuer(i int) string {
 	if !ok {
 		return nil, fmt.Errorf("unexpected error")
 	}
-	b = appendArrayQuotedBytes(b, raw%d)`, i, f.Name, i, i, i)
+	b = encoding.AppendArrayQuotedBytes(b, raw%d)`, i, f.Name, i, i, i)
 	}
 	return resp
 }

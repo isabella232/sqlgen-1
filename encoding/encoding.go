@@ -1,5 +1,4 @@
-// generated code
-package {{.PackageName}}
+package encoding
 
 import (
 	"bytes"
@@ -8,7 +7,7 @@ import (
 	"strings"
 )
 
-func appendArrayQuotedBytes(b, v []byte) []byte {
+func AppendArrayQuotedBytes(b, v []byte) []byte {
 	b = append(b, '"')
 	for {
 		i := bytes.IndexAny(v, `"\`)
@@ -25,7 +24,7 @@ func appendArrayQuotedBytes(b, v []byte) []byte {
 	return append(b, '"')
 }
 
-func splitBytes(src []byte) ([][]byte, error) {
+func SplitBytes(src []byte) ([][]byte, error) {
 	if len(src) < 1 || src[0] != '(' {
 		return nil, fmt.Errorf("unable to parse type, expected %q at offset %d", '(', 0)
 	}
@@ -103,7 +102,7 @@ func (s *scanner) Peek() (byte, error) {
 	return b, err
 }
 
-func scanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
+func ScanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
 	dims, elems, err := parseArray(src, del)
 	if err != nil {
 		return nil, err

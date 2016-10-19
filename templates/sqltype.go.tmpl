@@ -6,6 +6,8 @@ import (
 	"database/sql/driver"
 	"strconv"
 	"fmt"
+
+	"github.com/optiopay/generate-composite-types/encoding"
 )
 
 {{ if .Array }}
@@ -31,7 +33,7 @@ func (x {{.TypeName}}Array) Value() (driver.Value, error) {
 		if !ok {
 			return nil, fmt.Errorf("unexpected value")
 		}
-		b = appendArrayQuotedBytes(b, val)
+		b = encoding.AppendArrayQuotedBytes(b, val)
 		for i := 1; i < n; i++ {
 			vali, err := x[i].Value()
 			if err != nil {
@@ -42,7 +44,7 @@ func (x {{.TypeName}}Array) Value() (driver.Value, error) {
 				return nil, fmt.Errorf("unexpected value")
 			}
 			b = append(b, ',')
-			b = appendArrayQuotedBytes(b, val)
+			b = encoding.AppendArrayQuotedBytes(b, val)
 		}
 
 		return string(append(b, '}')), nil
@@ -67,7 +69,7 @@ func (x *{{.TypeName}}Array) Scan(src interface{}) error {
 }
 
 func (x *{{.TypeName}}Array) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "{{.TypeName}}")
+	elems, err := encoding.ScanLinearArray(src, []byte{','}, "{{.TypeName}}")
 	if err != nil {
 		return err
 	}
@@ -105,7 +107,7 @@ func (x *{{.TypeName}}) Scan(src interface{}) error {
 }
 
 func (x *{{.TypeName}}) scanBytes(src []byte) error {
-	elems, err := splitBytes(src)
+	elems, err := encoding.SplitBytes(src)
 	if err != nil {
 		return err
 	}
