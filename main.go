@@ -295,17 +295,17 @@ func generateAliasValuer(a *parser.TypeAlias) (string, error) {
 	resp := ""
 	switch a.Type {
 	case "int", "int8", "int16", "int32", "int64":
-		resp = fmt.Sprintf(`b = strconv.AppendInt(b, int64(x), 10)`)
+		resp = fmt.Sprintf(`b = strconv.AppendInt(b, int64(*x), 10)`)
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		resp = fmt.Sprintf(`b = strconv.AppendUint(b, uint64(x), 10)`)
+		resp = fmt.Sprintf(`b = strconv.AppendUint(b, uint64(*x), 10)`)
 	case "float32":
-		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(x), 'f', -1, 32)`)
+		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(*x), 'f', -1, 32)`)
 	case "float64":
-		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(x), 'f', -1, 64)`)
+		resp = fmt.Sprintf(`b = strconv.AppendFloat(b, float64(*x), 'f', -1, 64)`)
 	case "string":
-		resp = fmt.Sprintf(`b = encoding.AppendArrayQuotedBytes(b, []byte(x))`)
+		resp = fmt.Sprintf(`b = encoding.AppendArrayQuotedBytes(b, []byte(*x))`)
 	case "bool":
-		resp = fmt.Sprintf(`b = strconv.AppendBool(b, x)`)
+		resp = fmt.Sprintf(`b = strconv.AppendBool(b, *x)`)
 	default:
 		return "", fmt.Errorf("unsupported alias for type %s: %s", a.Name, a.Type)
 	}

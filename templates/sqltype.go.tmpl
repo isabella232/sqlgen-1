@@ -120,7 +120,10 @@ func (x *{{.TypeName}}) scanBytes(src []byte) error {
 	return nil
 }
 
-func (x {{.TypeName}}) Value() (driver.Value, error) {
+func (x *{{.TypeName}}) Value() (driver.Value, error) {
+        if x == nil {
+	   return nil, nil
+	}
 	b := make([]byte, 1)
 	b[0] = '('
 	{{ range $index, $field := .Fields }}

@@ -24,7 +24,10 @@ func (x *{{.AliasName}}) scanBytes(src []byte) error{
      return nil
 }
 
-func (x {{.AliasName}}) Value() (driver.Value, error) {
+func (x *{{.AliasName}}) Value() (driver.Value, error) {
+     if x == nil {
+     	return nil, nil
+     }
      b := make([]byte,0)
      {{.Valuer}}
      return b, nil
