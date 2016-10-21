@@ -62,7 +62,7 @@ func TestCustom(t *testing.T) {
 	assert.Equal(t, j, j2)
 }
 
-func TestJobArray(t *testing.T) {
+func TestJobSlice(t *testing.T) {
 	db, err := sql.Open("postgres", "user=postgres dbname=custom sslmode=disable")
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +77,7 @@ func TestJobArray(t *testing.T) {
 	}
 
 	id := fmt.Sprintf("%d", time.Now().UnixNano())
-	jobs := JobArray{
+	jobs := JobSlice{
 		{id, &Money{12, "EUR", false}, "Test Job", 1},
 		{id + "1", &Money{10, "EUR", false}, "Test Job", 2},
 	}
@@ -87,7 +87,7 @@ func TestJobArray(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var other JobArray
+	var other JobSlice
 	err = db.QueryRow(`select jobs from jobs where id=$1`, id).Scan(&other)
 	if err != nil {
 		t.Fatal(err)

@@ -44,7 +44,7 @@ func main() {
 	path := flag.String("path", ".", "path for the go source files")
 	structs := flag.String("structs", "", "comma separated structs that needs generation")
 	alias := flag.String("alias", "", "comma separated type aliases that needs generation")
-	array := flag.Bool("array", false, "generate Array types")
+	slice := flag.Bool("slice", false, "generate Slice types")
 	sql := flag.Bool("sql", false, "write sql initalizing functions")
 	flag.Parse()
 
@@ -53,7 +53,7 @@ func main() {
 
 	if *structs != "" {
 		for _, ty := range strings.Split(*structs, ",") {
-			err = g.GenerateStruct(*path, ty, *sql, *array)
+			err = g.GenerateStruct(*path, ty, *sql, *slice)
 			fatalOnErr(err)
 		}
 	}
@@ -87,7 +87,7 @@ func NewGenerator(path string) (*Generator, error) {
 	return g, nil
 }
 
-func (g *Generator) GenerateStruct(path, struct_ string, sql, array bool) error {
+func (g *Generator) GenerateStruct(path, struct_ string, sql, slice bool) error {
 	st, ok := g.pkg.StructType(struct_)
 	if !ok {
 		return fmt.Errorf("%s type not found", struct_)
@@ -98,7 +98,7 @@ func (g *Generator) GenerateStruct(path, struct_ string, sql, array bool) error 
 	}
 	filename := filepath.Join(path, strings.ToLower(struct_)+"_sql.go")
 	var buf bytes.Buffer
-	err = g.WriteType(sqlTy, &buf, struct_, array)
+	err = g.WriteType(sqlTy, &buf, struct_, slice)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (g *Generator) WriteType(type_ *Type, w io.Writer, ty string, array bool) e
 		"SQLTypeName": strings.ToLower(type_.Name) + "_type",
 		"PackageName": g.pkg.Name,
 		"Fields":      type_.Fields,
-		"Array":       array,
+		"Slice":       array,
 	})
 }
 

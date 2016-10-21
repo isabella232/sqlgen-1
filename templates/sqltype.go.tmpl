@@ -10,11 +10,11 @@ import (
 	"github.com/optiopay/sqlgen/encoding"
 )
 
-{{ if .Array }}
-type {{.TypeName}}Array []{{.TypeName}}
+{{ if .Slice }}
+type {{.TypeName}}Slice []{{.TypeName}}
 
 // Value implements the driver.Valuer interface.
-func (x {{.TypeName}}Array) Value() (driver.Value, error) {
+func (x {{.TypeName}}Slice) Value() (driver.Value, error) {
 	if x == nil {
 		return nil, nil
 	}
@@ -54,7 +54,7 @@ func (x {{.TypeName}}Array) Value() (driver.Value, error) {
 }
 
 // Scan implements the sql.Scanner interface.
-func (x *{{.TypeName}}Array) Scan(src interface{}) error {
+func (x *{{.TypeName}}Slice) Scan(src interface{}) error {
      	if src == nil {
 	       return nil
 	}
@@ -65,10 +65,10 @@ func (x *{{.TypeName}}Array) Scan(src interface{}) error {
 		return x.scanBytes([]byte(src))
 	}
 
-	return fmt.Errorf("pq: cannot convert %T to {{.TypeName}}Array\n%s", src, src)
+	return fmt.Errorf("pq: cannot convert %T to {{.TypeName}}Slice\n%s", src, src)
 }
 
-func (x *{{.TypeName}}Array) scanBytes(src []byte) error {
+func (x *{{.TypeName}}Slice) scanBytes(src []byte) error {
 	elems, err := encoding.ScanLinearArray(src, []byte{','}, "{{.TypeName}}")
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (x *{{.TypeName}}Array) scanBytes(src []byte) error {
 	if len(elems) == 0 {
 		*x = (*x)[:0]
 	} else {
-		b := make({{.TypeName}}Array, len(elems))
+		b := make({{.TypeName}}Slice, len(elems))
 		for i, v := range elems {
 			other := {{.TypeName}}{}
 			err := other.Scan(v)
