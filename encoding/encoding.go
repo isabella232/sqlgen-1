@@ -25,64 +25,93 @@ func AppendArrayQuotedBytes(b, v []byte) []byte {
 }
 
 func SplitBytes(src []byte) ([][]byte, error) {
-	if len(src) < 1 || src[0] != '(' {
-		return nil, fmt.Errorf("unable to parse type, expected %q at offset %d", '(', 0)
+	if len(src) == 0 {
+		return nil, nil
+	}
+	if src[0] != '(' {
+		return nil, fmt.Errorf(
+			"unable to parse type, expected %q at offset %d", '(', 0)
 	}
 
-	r := &scanner{bytes.NewReader(src[1:])}
+	buf := &scanner{bytes.NewReader(src[1:])}
 	chunks := make([][]byte, 0)
 	var (
-		elem   []byte
-		prev   byte
-		depth  = 1
-		quoted bool
+		depth              = 1
+		elem               []byte
+		quoted, aQuoteSeen bool
+		prev               rune
 	)
 	for {
-		if depth == 0 {
-			// This might mean we ignore some trailing bytes
-			// I don't know what this means currently
-			break
-		}
-		b, err := r.Next()
+		b, err := buf.Next()
 		if err != nil && err != io.EOF {
+			// I can't think of why this would happen
 			return nil, err
 		}
 		switch b {
-		case ')':
-			if !quoted {
-				depth--
-				chunks = append(chunks, elem)
-			} else {
-				elem = append(elem, b)
+		case '(':
+			elem = append(elem, b)
+			if escaped(prev) {
+				break
 			}
+			depth++
+		case ')':
+			if escaped(prev) {
+				elem = append(elem, b)
+				break
+			}
+			depth--
+			if depth == 0 {
+				chunks = append(chunks, elem)
+				elem = nil
+				break
+			}
+			elem = append(elem, b)
+		case ',':
+			if !quoted && !escaped(prev) {
+				chunks = append(chunks, elem)
+				elem = nil
+				break
+			}
+			elem = append(elem, b)
 		case '"':
-			by, err := r.Peek()
-			if err == nil {
-				if by == '"' {
+			if quoted {
+				p, _ := buf.Peek()
+				if p == '"' {
+					// probably next item is double quoted
+					if !aQuoteSeen {
+						aQuoteSeen = true
+						break
+					}
+				}
+				if aQuoteSeen {
 					elem = append(elem, b)
-					_, _ = r.Next()
+					aQuoteSeen = false
 					break
 				}
+				quoted = false
+				break
 			}
-			if prev != '\\' {
-				quoted = !quoted
-			} else {
-				elem = append(elem, b)
+			if prev != '"' {
+				quoted = true
+				break
 			}
-		case ',':
-			if !quoted {
-				chunks = append(chunks, elem)
-				elem = make([]byte, 0)
-			} else {
-				elem = append(elem, b)
-			}
+
 		default:
+			if escaped(rune(b)) {
+				break
+			}
 			elem = append(elem, b)
 		}
-		prev = b
+		prev = rune(b)
+		if err == io.EOF {
+			break
+		}
 	}
-
 	return chunks, nil
+}
+
+func escaped(r rune) bool {
+	return r == '\\'
 }
 
 type scanner struct {

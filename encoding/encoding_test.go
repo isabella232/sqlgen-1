@@ -83,3 +83,40 @@ func TestParseArrayError(t *testing.T) {
 		}
 	}
 }
+
+func TestSplitBytes(t *testing.T) {
+	for i, test := range []struct {
+		input string
+		exp   [][]byte
+	}{
+		{``, nil},
+		{`("")`, [][]byte{[]byte(nil)}},
+		{`("hello","""world""")`, [][]byte{[]byte(`hello`), []byte(`"world"`)}},
+		{`("hello","wor""ld")`, [][]byte{[]byte(`hello`), []byte(`wor"ld`)}},
+		{`("hello","wor""ld","(""hello"",""world"")")`, [][]byte{[]byte(`hello`), []byte(`wor"ld`), []byte(`("hello","world")`)}},
+		{`("""world""",1,3.5)`, [][]byte{[]byte(`"world"`), []byte(`1`), []byte(`3.5`)}},
+		{`(NULL)`, [][]byte{[]byte(`NULL`)}},
+		{`("he\(llo\)")`, [][]byte{[]byte(`he(llo)`)}},
+		{`("hello new, world")`, [][]byte{[]byte(`hello new, world`)}},
+		{`("hello","new\, world")`, [][]byte{[]byte(`hello`), []byte(`new, world`)}},
+	} {
+		got, err := SplitBytes([]byte(test.input))
+		if err != nil {
+			t.Errorf("%d failed: %s", i, err)
+		}
+		if !reflect.DeepEqual(got, test.exp) {
+			t.Errorf("exp: %s, got %s", test.exp, got)
+		}
+	}
+}
+
+func TestSplitBytesError(t *testing.T) {
+	for i, test := range []string{
+		"hello, world)",
+	} {
+		output, err := SplitBytes([]byte(test))
+		if err == nil {
+			t.Errorf("%d failed, expected an error, got a result: %s", i, output)
+		}
+	}
+}
